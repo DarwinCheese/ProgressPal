@@ -24,15 +24,6 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: "Email already in use" });
     }
 
-    // Check if name already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      return res.status(400).json({ error: "Name already in use" });
-    }
-
     // Hash password
     const hashed = await bcrypt.hash(password, 10);
 
