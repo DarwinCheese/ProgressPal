@@ -1,27 +1,54 @@
-import { Router } from "express";
 import { prisma } from "../prisma/client.js";
+import { Router } from "express";
+import jwt from "jsonwebtoken";
+import { success } from "zod";
 
 const router = Router();
 
-// Get all habits
-router.get("/", async (req, res) => {
-  const habits = await prisma.habit.findMany({ include: { entries: true } });
+// Check JWT and get user ID
+function auth(req: any, res: any, next: any) {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "Missing token" });
+
+  try {
+    const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
+    req.userId = decoded.id;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+}
+
+// GET /habits
+router.get("/", auth, async (req: any, res) => {
+  const habits = await prisma.habit.findMany({
+    where: { userId: req.userId },
+  });
   res.json(habits);
 });
 
-// Create habit
-router.post("/", async (req, res) => {
-  const { title, description, userId } = req.body;
+// POST /habits
+router.post("/", auth, async (req: any, res) => {
+  const { title, description } = req.body;
+
   const habit = await prisma.habit.create({
-    data: { title, description, userId },
+    data: {
+      title,
+      description,
+      userId: req.userId,
+    },
   });
-  res.status(201).json(habit);
+
+  res.json(habit);
 });
 
-// Delete habit
-router.delete("/:id", async (req, res) => {
-  await prisma.habit.delete({ where: { id: req.params.id } });
-  res.status(204).end();
+// Delete /habits
+router.delete("/:id", auth, async (req: any, res) => {
+  await prisma.habit.delete({
+    where: { id: req.params.id, useId: req.useId },
+  });
+
+  res.json({ success: true });
 });
 
 export default router;
