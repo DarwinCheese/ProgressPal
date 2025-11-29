@@ -90,8 +90,8 @@ export default function DashboardPage() {
             ✕
           </button>
 
-          <h2 className="font-semibold text-lg">{h.title}</h2>
-          <p className="text-gray-500">{h.description}</p>
+          <h2 className="font-semibold text-lg break-all">{h.title}</h2>
+          <p className="text-gray-500 break-all">{h.description}</p>
         </Card>
       ))}
 
@@ -106,25 +106,49 @@ export default function DashboardPage() {
           <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm">
             <h2 className="text-xl font-bold mb-4">New Habit</h2>
 
+            {/* Title */}
             <input
-              className="border w-full p-2 rounded mb-3"
+              className={`border w-full p-2 rounded mb-1 ${
+                title.length > 50 ? "border-red-500" : ""
+              }`}
               placeholder="Habit title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
+            {title.length > 50 && (
+              <p className="text-red-500 text-sm">
+                Title cannot exceed 50 characters
+              </p>
+            )}
 
+            {/* Description */}
             <textarea
-              className="border w-full p-2 rounded mb-4"
+              className={`border w-full p-2 rounded mb-1 ${
+                desc.length > 200 ? "border-red-500" : ""
+              }`}
               placeholder="Description (optional)"
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
             />
+            {desc.length > 200 && (
+              <p className="text-red-500 text-sm">
+                Description cannot exceed 200 characters
+              </p>
+            )}
 
-            <div className="flex justify-end gap-2">
+            {/* Buttons */}
+            <div className="flex justify-end gap-2 mt-2">
               <Button variant="outline" onClick={() => setShowModal(false)}>
                 Cancel
               </Button>
-              <Button onClick={addHabit}>Save</Button>
+              <Button
+                onClick={addHabit}
+                disabled={
+                  title.length === 0 || title.length > 50 || desc.length > 200
+                }
+              >
+                Save
+              </Button>
             </div>
           </div>
         </div>
