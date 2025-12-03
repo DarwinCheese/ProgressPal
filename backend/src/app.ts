@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import habitRoutes from "./routes/habits.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import { auth } from "./middleware/auth.js";
 
 dotenv.config();
 
@@ -15,7 +16,10 @@ app.use(
 );
 app.use(express.json());
 
-app.use("/api/habits", habitRoutes);
 app.use("/auth", authRoutes);
+
+app.use(auth); // Everything beneath is protected
+app.use("/api/habits", habitRoutes);
+// app.use entries needs to be added soon
 
 export default app;

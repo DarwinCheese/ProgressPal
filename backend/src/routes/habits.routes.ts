@@ -1,23 +1,8 @@
 import { prisma } from "../prisma/client.js";
 import { Router } from "express";
-import jwt from "jsonwebtoken";
-import { success } from "zod";
+import { auth } from "../middleware/auth.js";
 
 const router = Router();
-
-// Check JWT and get user ID
-function auth(req: any, res: any, next: any) {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "Missing token" });
-
-  try {
-    const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
-    req.userId = decoded.id;
-    next();
-  } catch (err) {
-    return res.status(401).json({ error: "Invalid token" });
-  }
-}
 
 // GET /habits
 router.get("/", auth, async (req: any, res) => {
@@ -32,11 +17,15 @@ router.post("/", auth, async (req: any, res) => {
   const { title, description } = req.body;
 
   if (!title || title.length > 50) {
-    return res.status(400).json({ error: "Title must be 1-50 characters long" });
+    return res
+      .status(400)
+      .json({ error: "Title must be 1-50 characters long" });
   }
 
   if (!description || description.length > 200) {
-    return res.status(400).json({ error: "Description must be 1-200 characters long" });
+    return res
+      .status(400)
+      .json({ error: "Description must be 1-200 characters long" });
   }
 
   const habit = await prisma.habit.create({
