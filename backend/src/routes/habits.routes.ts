@@ -1,27 +1,51 @@
-import { Router } from "express";
 import { prisma } from "../prisma/client.js";
+import { Router } from "express";
+import { auth } from "../middleware/auth.js";
 
 const router = Router();
 
-// Get all habits
-router.get("/", async (req, res) => {
-  const habits = await prisma.habit.findMany({ include: { entries: true } });
+// GET /habits
+router.get("/", auth, async (req: any, res) => {
+  const habits = await prisma.habit.findMany({
+    where: { userId: req.userId },
+  });
   res.json(habits);
 });
 
-// Create habit
-router.post("/", async (req, res) => {
-  const { title, description, userId } = req.body;
+// POST /habits
+router.post("/", auth, async (req: any, res) => {
+  const { title, description } = req.body;
+
+  if (!title || title.length > 50) {
+    return res
+      .status(400)
+      .json({ error: "Title must be 1-50 characters long" });
+  }
+
+  if (!description || description.length > 200) {
+    return res
+      .status(400)
+      .json({ error: "Description must be 1-200 characters long" });
+  }
+
   const habit = await prisma.habit.create({
-    data: { title, description, userId },
+    data: {
+      title,
+      description,
+      userId: req.userId,
+    },
   });
-  res.status(201).json(habit);
+
+  res.json(habit);
 });
 
-// Delete habit
-router.delete("/:id", async (req, res) => {
-  await prisma.habit.delete({ where: { id: req.params.id } });
-  res.status(204).end();
+// Delete /habits
+router.delete("/:id", auth, async (req: any, res) => {
+  await prisma.habit.delete({
+    where: { id: req.params.id, userId: req.userId },
+  });
+
+  res.json({ success: true });
 });
 
 export default router;
